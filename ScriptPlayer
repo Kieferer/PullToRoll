@@ -1,0 +1,88 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ScriptPlayer : MonoBehaviour
+{
+    private bool StillMoving;
+    private Vector2 PositionOfFirstTouch;
+    private Vector2 PositionOfLastTouch;
+    private Vector3[] DirectionsOfRoll;
+    private void Start()
+    {
+        DirectionsOfRoll[0] = new Vector3(GetComponent<BoxCollider>().bounds.size.x / 2, -GetComponent<BoxCollider>().bounds.size.y / 2, 0);
+        DirectionsOfRoll[1] = new Vector3(-GetComponent<BoxCollider>().bounds.size.x / 2, -GetComponent<BoxCollider>().bounds.size.y / 2, 0);
+        DirectionsOfRoll[2] = new Vector3(0, -GetComponent<BoxCollider>().bounds.size.y / 2, GetComponent<BoxCollider>().bounds.size.z / 2);
+        DirectionsOfRoll[3] = new Vector3(0, -GetComponent<BoxCollider>().bounds.size.y / 2, -GetComponent<BoxCollider>().bounds.size.z / 2);
+    }
+    private void Update()
+    {
+        if (!StillMoving)
+        {
+            if (Input.touchCount >= 1 && Input.GetTouch(0).phase == TouchPhase.Began)
+            {
+                PositionOfFirstTouch = Input.GetTouch(0).position;
+            }
+            if (Input.touchCount == 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
+            {
+                PositionOfLastTouch = Input.GetTouch(0).position;
+                float DifferenceOfX = (PositionOfFirstTouch.x - PositionOfLastTouch.x);
+                float DifferenceOfY = (PositionOfFirstTouch.y - PositionOfLastTouch.y);
+                if (Mathf.Abs(DifferenceOfX) > Mathf.Abs(DifferenceOfY) && Mathf.Abs(DifferenceOfX) != Mathf.Abs(DifferenceOfY))
+                {
+                    if (DifferenceOfX > 0)
+                    {
+                        //Ebben az esteben a PlayerObject jobb oldalra fog forogni.
+                        StartCoroutine(MovePlayerObject(DirectionsOfRoll[0]));
+                    }
+                    if (DifferenceOfX < 0)
+                    {
+                        //Ebben az esteben a PlayerObject bal oldalra fog forogni.
+                        StartCoroutine(MovePlayerObject(DirectionsOfRoll[1]));
+                    }
+                }
+                if (Mathf.Abs(DifferenceOfX) < Mathf.Abs(DifferenceOfY) && Mathf.Abs(DifferenceOfX) != Mathf.Abs(DifferenceOfY))
+                {
+                    if (DifferenceOfY > 0)
+                    {
+                        //Ebben az esteben a PlayerObject felfele oldalra fog forogni.
+                        StartCoroutine(MovePlayerObject(DirectionsOfRoll[2]));
+                    }
+                    if (DifferenceOfY < 0)
+                    {
+                        //Ebben az esteben a PlayerObject lefele oldalra fog forogni.
+                        StartCoroutine(MovePlayerObject(DirectionsOfRoll[3]));
+                    }
+                }
+            }
+        }
+    }
+    private void InspectorRay()
+    {
+        if (!Physics.Raycast(transform.position, Vector3.down, 4f))
+        {
+            if (!GetComponent<Rigidbody>())
+            {
+                this.gameObject.AddComponent<Rigidbody>();
+                GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+            }
+        }
+    }
+
+    private IEnumerator MovePlayerObject(Vector3 DirectionForRoll)
+    {
+        StillMoving = true;
+        float RotationOfObject = 0;
+        Vector3 CenterOfObject = transform.position + DirectionForRoll;
+        Vector3 AxisOfObject = Vector3.Cross(Vector3.up, DirectionForRoll).normalized;
+        while (RotationOfObject < 90f)
+        {
+            transform.RotateAround(CenterOfObject, AxisOfObject, 6.125f * Time.deltaTime);
+            RotationOfObject += (6.125f * Time.deltaTime);
+            yield return null;
+        }
+        transform.RotateAround(CenterOfObject, AxisOfObject, 90 - RotationOfObject);
+        StillMoving = false;
+        InspectorRay();
+    }
+}

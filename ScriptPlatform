@@ -1,0 +1,28 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ScriptPlatform : MonoBehaviour
+{
+    private float NumberOfTime;
+    private int NumberOfColor;
+    private Color[] ColorsOfMaterial = {Color.yellow, Color.green, Color.cyan, Color.blue, Color.magenta, Color.red};
+    private Material MaterialOfPlatform;
+    public void Start()
+    {
+        MaterialOfPlatform = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+        MaterialOfPlatform.color = ColorsOfMaterial[5];
+        GetComponent<MeshRenderer>().material = MaterialOfPlatform;
+    }
+    public void Update()
+    {
+        NumberOfTime = Mathf.Lerp(NumberOfTime, 1f, 0.2f * Time.deltaTime);
+        MaterialOfPlatform.color = Color.Lerp(MaterialOfPlatform.color, ColorsOfMaterial[NumberOfColor], 0.2f * Time.deltaTime);
+        if (NumberOfTime > 0.9f)
+        {
+            NumberOfColor++;
+            NumberOfColor = (NumberOfColor >= 5) ? 0 : NumberOfColor;
+            NumberOfTime = 0;
+        }
+    }
+}

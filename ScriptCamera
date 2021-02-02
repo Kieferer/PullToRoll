@@ -1,0 +1,16 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ScriptCamera : MonoBehaviour
+{
+    public GameObject PlayerObject;
+    void Update()
+    {
+        //A PlayerOfCamera háttérszínét változtató mechanika.
+
+        //A PlayerCamera mozgatása X tengelyen.
+        float BoostSpeedOfCamera = Vector3.Distance(transform.position, new Vector3(PlayerObject.transform.position.x, transform.position.y, transform.position.z));
+        transform.position = Vector3.Lerp(transform.position, new Vector3(PlayerObject.transform.position.x, transform.position.y, PlayerObject.transform.position.z), (0.2f + BoostSpeedOfCamera) * Time.deltaTime);
+    }
+}

@@ -1,0 +1,35 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+public class ScriptGameManager : MonoBehaviour
+{
+    private float NumberOfTime;
+    private int NumberOfColor;
+    public Material MaterialOfPlatformTop;
+    public Material MaterialOfPlatformBottom;
+    private Color32[] ColorsOfMaterialMain = {new Color32(10, 0, 204, 255), new Color32(187, 0, 204, 255), new Color32(204, 0, 0, 255), new Color32(204, 100, 2, 255), new Color32(204, 177, 0, 255), new Color32(22, 204, 2, 255), new Color32(0, 204, 190, 255)};
+    private Color32[] ColorsOfMaterialSubject = {new Color32(9, 0, 179, 255), new Color32(164, 0, 179, 255), new Color32(179, 0, 0, 255), new Color32(179, 86, 1, 255), new Color32(179, 155, 0, 255), new Color32(20, 179, 1, 255), new Color32(0, 179, 168, 255)};
+    public void Start()
+    {
+        Application.targetFrameRate = 90;
+        //A Platform felső rétegének beállításai.
+        MaterialOfPlatformTop.color = ColorsOfMaterialMain[5];
+        //A Platform felső rétege alá csatolt Object beállításai.
+        MaterialOfPlatformBottom.color = ColorsOfMaterialSubject[5];
+    }
+    public void Update()
+    {
+        //A Materialokon megjelenített színek kiszámítása.
+        MaterialOfPlatformTop.color = Color.Lerp(MaterialOfPlatformTop.color, ColorsOfMaterialMain[NumberOfColor], 0.2f * Time.deltaTime);
+        MaterialOfPlatformBottom.color = Color.Lerp(MaterialOfPlatformBottom.color, ColorsOfMaterialSubject[NumberOfColor], 0.2f * Time.deltaTime);
+        //A Materialokon Lerp-pel megjelenített színek váltásáért felelős logika.
+        NumberOfTime = Mathf.Lerp(NumberOfTime, 1f, 0.2f * Time.deltaTime);
+        if (NumberOfTime > 0.9f)
+        {
+            NumberOfColor++;
+            NumberOfColor = (NumberOfColor >= 6) ? 0 : NumberOfColor;
+            NumberOfTime = 0;
+        }
+    }
+}

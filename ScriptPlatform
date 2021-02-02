@@ -4,25 +4,76 @@ using UnityEngine;
 
 public class ScriptPlatform : MonoBehaviour
 {
-    private float NumberOfTime;
-    private int NumberOfColor;
-    private Color[] ColorsOfMaterial = {Color.yellow, Color.green, Color.cyan, Color.blue, Color.magenta, Color.red};
-    private Material MaterialOfPlatform;
+    private bool PlatfromGenerated;
+    public bool[] SidesOfPlatform = {false, false, false};
+    private GameObject PlayerObject;
+    private GameObject PlatformPrefab;
+    public void Awake()
+    {
+        //Definiálások
+        if (!PlayerObject || !PlatformPrefab)
+        {
+            PlayerObject = GameObject.FindWithTag("Player").gameObject;
+            PlatformPrefab = Resources.Load<GameObject>("Components/Prefabs/Platform");
+        }
+    }
     public void Start()
     {
-        MaterialOfPlatform = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-        MaterialOfPlatform.color = ColorsOfMaterial[5];
-        GetComponent<MeshRenderer>().material = MaterialOfPlatform;
+        //Platform Material-jainak beállítása.
+        GetComponent<MeshRenderer>().material = GameObject.Find("GameManager").GetComponent<ScriptGameManager>().MaterialOfPlatformTop;
+        transform.GetChild(0).GetComponent<MeshRenderer>().material = GameObject.Find("GameManager").GetComponent<ScriptGameManager>().MaterialOfPlatformBottom;
+        //A Platform oldalainak ellenörzése és az ahhoz szükséges változók.
+        Vector3[] VectorsOfSides = {Vector3.forward, Vector3.right, Vector3.back};
+        for (int NumberOfSide = 0; NumberOfSide < VectorsOfSides.Length; NumberOfSide++)
+        {
+            if (Physics.Raycast(transform.position, VectorsOfSides[NumberOfSide], 2f))
+            {
+                SidesOfPlatform[NumberOfSide] = true;
+            }
+            if (NumberOfSide == 0 || NumberOfSide == 2)
+            {
+                if (Physics.Raycast(transform.position + VectorsOfSides[NumberOfSide], Vector3.left, 2f))
+                {
+                    SidesOfPlatform[NumberOfSide] = true;
+                }
+            }
+        }
     }
     public void Update()
     {
-        NumberOfTime = Mathf.Lerp(NumberOfTime, 1f, 0.2f * Time.deltaTime);
-        MaterialOfPlatform.color = Color.Lerp(MaterialOfPlatform.color, ColorsOfMaterial[NumberOfColor], 0.2f * Time.deltaTime);
-        if (NumberOfTime > 0.9f)
+        //Az új Platform legenerálása/eltüntetése és az ahhoz szükséges számítások.
+        float DistanceOfPlayer = Vector3.Distance(transform.position, PlayerObject.transform.position);
+        if (DistanceOfPlayer < 1f && !PlatfromGenerated)
         {
-            NumberOfColor++;
-            NumberOfColor = (NumberOfColor >= 5) ? 0 : NumberOfColor;
-            NumberOfTime = 0;
+            //Ha a közelsége kevesebb mint 2.8f és még nem generált korábban Platformot akkor megteszi.
+            int RandomNumberForSides = Random.Range(0, 3);
+            if (SidesOfPlatform[RandomNumberForSides] == false)
+            {
+                GeneratePlatform(RandomNumberForSides);
+                PlatfromGenerated = true;
+            }
+        }
+    }
+    public void GeneratePlatform(int NumberOfSides)
+    {
+        Vector3 NextTargetedPosition;
+        switch (NumberOfSides)
+        {
+            //Ebben az esetben a Platformot a jelenlegitől jobbra fogja generálni.
+            case 0:
+                NextTargetedPosition = (transform.position + Vector3.forward);
+                GameObject Platform0 = Instantiate(PlatformPrefab, NextTargetedPosition, Quaternion.identity);
+            break;
+            //Ebben az esetben a Platformot a jelenlegitől előre fogja generálni.
+            case 1:
+                NextTargetedPosition = (transform.position + Vector3.right);
+                GameObject Platform1 = Instantiate(PlatformPrefab, NextTargetedPosition, Quaternion.identity);
+            break;
+            //Ebben az esetben a Platformot a jelenlegitől balra fogja generálni.
+            case 2:
+                NextTargetedPosition = (transform.position + Vector3.back);
+                GameObject Platform2 = Instantiate(PlatformPrefab, NextTargetedPosition, Quaternion.identity);
+            break;
         }
     }
 }

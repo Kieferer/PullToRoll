@@ -1,0 +1,55 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+public class ScriptMenuGameManager : MonoBehaviour
+{
+    private float NumberOfColorTime;
+    private int NumberOfColor;
+    public Material MaterialOfPlatformTop;
+    public Material MaterialOfPlatformBottom;
+    [SerializeField] private GameObject PlatformOrigin;
+    [SerializeField] private GameObject SceneCutManager;
+    [SerializeField] private Color[] ColorsOfMaterialMain = {new Color32(10, 0, 204, 255), new Color32(187, 0, 204, 255), new Color32(204, 0, 0, 255), new Color32(204, 100, 2, 255), new Color32(204, 177, 0, 255), new Color32(22, 204, 2, 255), new Color32(0, 204, 190, 255)};
+    [SerializeField] private Color[] ColorsOfMaterialSubject = {new Color32(9, 0, 179, 255), new Color32(164, 0, 179, 255), new Color32(179, 0, 0, 255), new Color32(179, 86, 1, 255), new Color32(179, 155, 0, 255), new Color32(20, 179, 1, 255), new Color32(0, 179, 168, 255)};
+    [SerializeField] private Color[] ColorsOfCamera = {new Color32(110, 107, 178, 255), new Color32(171, 0, 107, 178), new Color32(178, 107, 107, 255), new Color32(178, 140, 107, 255), new Color32(178, 167, 107, 255), new Color32(115, 178, 107, 255), new Color32(107, 178, 173, 255)};
+    public void Start()
+    {
+        //A változó színek beállítása.
+        MaterialOfPlatformTop.color = ColorsOfMaterialMain[5];
+        MaterialOfPlatformBottom.color = ColorsOfMaterialSubject[5];
+        //A SinglePlayer játékmód pályájának létrehozása.
+        PlatformOrigin.GetComponent<MeshRenderer>().material = MaterialOfPlatformTop;
+        PlatformOrigin.transform.GetChild(0).GetComponent<MeshRenderer>().material = MaterialOfPlatformBottom;
+        //Amennyiben minden betöltött, akkor a SceneCut eltünhet.
+        StartCoroutine(SceneCut(2));
+    }
+    public void Update()
+    {
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
+        //A Materialok és egyébb elemek szineinek állandó változtatása. 
+        MaterialOfPlatformTop.color = Color.Lerp(MaterialOfPlatformTop.color, ColorsOfMaterialMain[NumberOfColor], 0.2f * Time.deltaTime);
+        MaterialOfPlatformBottom.color = Color.Lerp(MaterialOfPlatformBottom.color, ColorsOfMaterialSubject[NumberOfColor], 0.2f * Time.deltaTime);
+        //A Materialokon Lerp-pel megjelenített színek váltásáért felelős logika.
+        NumberOfColorTime = Mathf.Lerp(NumberOfColorTime, 1f, 0.2f * Time.deltaTime);
+        if (NumberOfColorTime > 0.9f)
+        {
+            NumberOfColor++;
+            NumberOfColor = (NumberOfColor >= 6) ? 0 : NumberOfColor;
+            NumberOfColorTime = 0;
+        }
+    }
+    public IEnumerator SceneCut(int NumberForWait)
+    {
+        yield return new WaitForSeconds(NumberForWait);
+        if (SceneCutManager.GetComponent<ScriptCut>().SceneUnderProcess)
+        {
+            SceneCutManager.GetComponent<ScriptCut>().SceneUnderProcess = false;
+        }
+        else
+        {
+            SceneCutManager.GetComponent<ScriptCut>().SceneUnderProcess = true;
+        }
+    }
+}

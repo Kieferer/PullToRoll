@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class ScriptPlayer : MonoBehaviour
 {
-    private bool StillMoving;
     public bool PlayerAlive;
+    private bool StillMoving;
+    public GameObject GameManager;
+    public GameObject PlayerObjectBroken;
     private Vector2 PositionOfFirstTouch;
     private Vector2 PositionOfLastTouch;
-    public Vector3[] DirectionsOfRoll;
+    private Vector3[] DirectionsOfRoll = {Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero};
     public void Start()
     {
         DirectionsOfRoll[0] = (new Vector3(-GetComponent<BoxCollider>().bounds.size.x / 2, -GetComponent<BoxCollider>().bounds.size.y / 2, 0));
@@ -18,8 +20,9 @@ public class ScriptPlayer : MonoBehaviour
     }
     public void Update()
     {
-        if (!StillMoving && PlayerAlive)
+        if (!StillMoving && PlayerAlive == true)
         {
+            //A PlayerObject irányítása.
             if (Input.touchCount >= 1 && Input.GetTouch(0).phase == TouchPhase.Began)
             {
                 PositionOfFirstTouch = Input.GetTouch(0).position;
@@ -46,27 +49,79 @@ public class ScriptPlayer : MonoBehaviour
                 {
                     if (DifferenceOfY > 0)
                     {
-                        //Ebben az esteben a PlayerObject felfele oldalra fog forogni.
+                        //Ebben az esteben a PlayerObject felfele fog forogni.
                         StartCoroutine(MovePlayerObject(DirectionsOfRoll[2]));
                     }
                     if (DifferenceOfY < 0)
                     {
-                        //Ebben az esteben a PlayerObject lefele oldalra fog forogni.
+                        //Ebben az esteben a PlayerObject lefele fog forogni.
                         StartCoroutine(MovePlayerObject(DirectionsOfRoll[3]));
                     }
                 }
             }
         }
-        if (!PlayerAlive)
+    }
+    public void OnTriggerEnter(Collider collider)
+    {
+        if (collider.gameObject.tag == "PlatformSpike" && PlayerAlive)
         {
-            transform.position = new Vector3(transform.position.x, Mathf.MoveTowards(transform.position.y, -20f, (5.125f + Mathf.Abs(transform.position.y * 5)) * Time.deltaTime), transform.position.z);
+            DieAndRebornOfPlayer();
         }
     }
     public void InspectorRay()
     {
-        if (!Physics.Raycast(transform.position, Vector3.down, 4f))
+        //A PlayerObject megállapítja, hogyha Platformra érkezett, akkor milyenre.
+        if (!Physics.Raycast(transform.position, Vector3.down, out RaycastHit Platform, 4f))
         {
-            PlayerAlive = false;
+            DieAndRebornOfPlayer();
+        }
+        else
+        {
+            if (PlayerAlive)
+            {
+                if (Platform.transform.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromSpike == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
+                {
+                    //1 pont
+                    Platform.transform.GetComponent<ScriptPlatform>().PlayerReached = true;
+                }
+                if (Platform.transform.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromSpike == true && Platform.transform.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
+                {
+                    //2 pont
+                    Platform.transform.GetComponent<ScriptPlatform>().PlayerReached = true;
+                }
+                if (Platform.transform.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromSpike == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
+                {
+                    //3 pont
+                    Platform.transform.GetComponent<ScriptPlatform>().PlayerReached = true;
+                }
+                if (Platform.transform.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromSpike == true && Platform.transform.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
+                {
+                    //4 pont
+                    Platform.transform.GetComponent<ScriptPlatform>().PlayerReached = true;
+                }
+            }
+        }
+    }
+    public void DieAndRebornOfPlayer()
+    {
+        switch (PlayerAlive)
+        {
+            case true:
+                //Ebben az esetben a PlayerObject elpusztul.
+                PlayerAlive = false;
+                GetComponent<BoxCollider>().enabled = false;
+                GetComponent<MeshRenderer>().enabled = false;
+                GameObject PlayerObjectDead = Instantiate(PlayerObjectBroken, transform.position, Quaternion.identity);
+                Destroy(PlayerObjectDead, 10);
+            break;
+
+            case false:
+                //Ebben az esetben a PlayerObject újászület.
+                transform.position = new Vector3(0, 0.62f, 0);
+                GetComponent<BoxCollider>().enabled = true;
+                GetComponent<MeshRenderer>().enabled = true;
+                PlayerAlive = true;
+            break;
         }
     }
     public IEnumerator MovePlayerObject(Vector3 DirectionForRoll)
@@ -77,8 +132,8 @@ public class ScriptPlayer : MonoBehaviour
         Vector3 AxisOfObject = Vector3.Cross(Vector3.up, DirectionForRoll).normalized;
         while (RotationOfObject < 90f)
         {
-            transform.RotateAround(CenterOfObject, AxisOfObject, 350.125f * Time.deltaTime);
-            RotationOfObject += (350.125f * Time.deltaTime);
+            transform.RotateAround(CenterOfObject, AxisOfObject, 400.125f * Time.deltaTime);
+            RotationOfObject += (400.125f * Time.deltaTime);
             yield return null;
         }
         transform.RotateAround(CenterOfObject, AxisOfObject, 90 - RotationOfObject);

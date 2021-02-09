@@ -1,0 +1,105 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ScriptPlatformAI : MonoBehaviour
+{
+    public bool PlayerReached;
+    public bool PlatfromGenerated;
+    public int DirectionGeneratedPlatform;
+    public bool[] SidesOfPlatform = {false, false, false};
+    private float FloatOfSpikeY;
+    private GameObject PlayerAIObject;
+    private GameObject PlatformAIPrefab;
+    private GameObject PlatformAIParent;
+    public void Awake()
+    {
+        if (!PlayerAIObject || !PlatformAIPrefab)
+        {
+            PlayerAIObject = GameObject.FindWithTag("Player");
+            PlatformAIPrefab = Resources.Load<GameObject>("PlatformAI");
+        }
+    }
+    public void Start()
+    {
+        //Platform Material-jainak beállítása.
+        GetComponent<MeshRenderer>().material = GameObject.FindWithTag("GameManager").GetComponent<ScriptMenuGameManager>().MaterialOfPlatformTop;
+        transform.GetChild(0).GetComponent<MeshRenderer>().material = GameObject.FindWithTag("GameManager").GetComponent<ScriptMenuGameManager>().MaterialOfPlatformBottom;
+        //A Platform oldalainak ellenörzése és az ahhoz szükséges változók.
+        Vector3[] VectorsOfSides = {Vector3.forward, Vector3.right, Vector3.back};
+        for (int NumberOfSide = 0; NumberOfSide < VectorsOfSides.Length; NumberOfSide++)
+        {
+            if (Physics.Raycast(transform.position, VectorsOfSides[NumberOfSide], 2f))
+            {
+                SidesOfPlatform[NumberOfSide] = true;
+            }
+            if (NumberOfSide == 0 || NumberOfSide == 2)
+            {
+                if (Physics.Raycast(transform.position + VectorsOfSides[NumberOfSide], Vector3.left, 2f))
+                {
+                    SidesOfPlatform[NumberOfSide] = true;
+                }
+            }
+        }
+    }
+    public void Update()
+    {
+        if (PlayerAIObject)
+        {
+            //A Platform legenerálása utáni helyre mozgatása.
+            if (transform.position.y != 0 && !PlatfromGenerated)
+            {
+                transform.position = Vector3.MoveTowards(transform.position, new Vector3(transform.position.x, 0, transform.position.z), (3.125f * (Vector3.Distance(transform.position, new Vector3(transform.position.x, 0, transform.position.z) / 2) * Time.deltaTime)));
+            }
+            //Az új Platform legenerálása/eltüntetése és az ahhoz szükséges számítások.
+            float DistanceOfPlayer = Vector3.Distance(transform.position, PlayerAIObject.transform.position);
+            if (transform.position.y == 0 && DistanceOfPlayer < 10f && !PlatfromGenerated)
+            {
+                //Ha a közelsége kevesebb mint 5f és még nem generált korábban Platformot akkor megteszi.
+                DirectionGeneratedPlatform = Random.Range(0, 3);
+                if (SidesOfPlatform[DirectionGeneratedPlatform] == false)
+                {
+                    GeneratePlatform(DirectionGeneratedPlatform);
+                    PlatfromGenerated = true;
+                }
+            }
+            if (DistanceOfPlayer > 2f && PlatfromGenerated && !PlatformAIParent)
+            {
+                //Ha a távolsága több mint 5f és már generált korábban Platformot akkor eltünteti magát.
+                if (transform.position.y != -20)
+                {
+                    transform.position = Vector3.MoveTowards(transform.position, new Vector3(transform.position.x, -20, transform.position.z), (2.125f * Vector3.Distance(transform.position, PlayerAIObject.transform.position) * Time.deltaTime));
+                }
+                else
+                {
+                    Destroy(this.gameObject);
+                }        
+            }
+        }
+    }
+    public void GeneratePlatform(int NumberOfSides)
+    {
+        Vector3 NextTargetedPosition;
+        switch (NumberOfSides)
+        {
+            //Ebben az esetben a Platformot a jelenlegitől jobbra fogja generálni.
+            case 0:
+                NextTargetedPosition = (new Vector3(transform.position.x, -20, transform.position.z) + Vector3.forward);
+                GameObject PlatformAI0 = Instantiate(PlatformAIPrefab, NextTargetedPosition, Quaternion.identity);
+                PlatformAI0.GetComponent<ScriptPlatformAI>().PlatformAIParent = this.gameObject;
+            break;
+            //Ebben az esetben a Platformot a jelenlegitől előre fogja generálni.
+            case 1:
+                NextTargetedPosition = (new Vector3(transform.position.x, -20, transform.position.z) + Vector3.right);
+                GameObject Platform1AI = Instantiate(PlatformAIPrefab, NextTargetedPosition, Quaternion.identity);
+                Platform1AI.GetComponent<ScriptPlatformAI>().PlatformAIParent = this.gameObject;
+            break;
+            //Ebben az esetben a Platformot a jelenlegitől balra fogja generálni.
+            case 2:
+                NextTargetedPosition = (new Vector3(transform.position.x, -20, transform.position.z) + Vector3.back);
+                GameObject Platform2AI = Instantiate(PlatformAIPrefab, NextTargetedPosition, Quaternion.identity);
+                Platform2AI.GetComponent<ScriptPlatformAI>().PlatformAIParent = this.gameObject;
+            break;
+        }
+    }
+}

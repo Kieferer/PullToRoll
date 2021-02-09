@@ -1,0 +1,67 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ScriptPlayerAI : MonoBehaviour
+{
+    public bool StillMoving;
+    public Vector3[] DirectionsOfRoll = {Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero};
+    public void Start()
+    {
+        DirectionsOfRoll[0] = (new Vector3(-GetComponent<BoxCollider>().bounds.size.x / 2, -GetComponent<BoxCollider>().bounds.size.y / 2, 0));
+        DirectionsOfRoll[1] = (new Vector3(GetComponent<BoxCollider>().bounds.size.x / 2, -GetComponent<BoxCollider>().bounds.size.y / 2, 0));
+        DirectionsOfRoll[2] = (new Vector3(0, -GetComponent<BoxCollider>().bounds.size.y / 2, -GetComponent<BoxCollider>().bounds.size.z / 2));
+        DirectionsOfRoll[3] = (new Vector3(0, -GetComponent<BoxCollider>().bounds.size.y / 2, GetComponent<BoxCollider>().bounds.size.z / 2));
+        StartCoroutine(LaunchAI());
+    }
+    public IEnumerator LaunchAI()
+    {
+        yield return new WaitForSeconds(2);
+        StartCoroutine(CalculationOfMove());
+    }
+    public IEnumerator CalculationOfMove()
+    {
+        if (StillMoving == false)
+        {
+            if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit DetectedPlatform, 4f))
+            {
+                if (DetectedPlatform.transform.GetComponent<ScriptPlatformAI>().PlatfromGenerated == true)
+                {
+                    yield return new WaitForSeconds(0.7f);
+                    switch (DetectedPlatform.transform.GetComponent<ScriptPlatformAI>().DirectionGeneratedPlatform)
+                    {
+                        case 0: StartCoroutine(MovePlayerObject(DirectionsOfRoll[3])); break;
+                        case 1: StartCoroutine(MovePlayerObject(DirectionsOfRoll[1])); break;
+                        case 2: StartCoroutine(MovePlayerObject(DirectionsOfRoll[2])); break;
+                    }
+                }
+                else
+                {
+                    yield return new WaitForSeconds(0.2f);
+                    StartCoroutine(CalculationOfMove());
+                }
+            }
+        }
+        else
+        {
+            yield return new WaitForSeconds(0.2f);
+            StartCoroutine(CalculationOfMove());
+        }
+    }
+    public IEnumerator MovePlayerObject(Vector3 DirectionForRoll)
+    {
+        StillMoving = true;
+        float RotationOfObject = 0;
+        Vector3 CenterOfObject = transform.position + DirectionForRoll;
+        Vector3 AxisOfObject = Vector3.Cross(Vector3.up, DirectionForRoll).normalized;
+        while (RotationOfObject < 90f)
+        {
+            transform.RotateAround(CenterOfObject, AxisOfObject, 400.125f * Time.deltaTime);
+            RotationOfObject += (400.125f * Time.deltaTime);
+            yield return null;
+        }
+        transform.RotateAround(CenterOfObject, AxisOfObject, 90 - RotationOfObject);
+        StillMoving = false;
+        StartCoroutine(CalculationOfMove());
+    }
+}

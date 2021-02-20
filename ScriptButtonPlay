@@ -2,11 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class ScriptButtonPlay : MonoBehaviour, IPointerClickHandler
 {
+    [SerializeField] private GameObject SceneCutManager;
     public void OnPointerClick(PointerEventData eventData)
     {
-
+        SceneCutManager.GetComponent<ScriptCut>().SceneUnderProcess = true;
+        StartCoroutine(TaskAfterClick());
+    }
+    IEnumerator TaskAfterClick()
+    {
+        yield return new WaitForSeconds(1);
+        SceneManager.LoadScene("RollingGameScene");
     }
 }

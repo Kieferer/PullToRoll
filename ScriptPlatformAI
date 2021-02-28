@@ -22,9 +22,6 @@ public class ScriptPlatformAI : MonoBehaviour
     }
     public void Start()
     {
-        //Platform Material-jainak beállítása.
-        GetComponent<MeshRenderer>().material = GameObject.FindWithTag("GameManager").GetComponent<ScriptMenuGameManager>().MaterialOfPlatformTop;
-        transform.GetChild(0).GetComponent<MeshRenderer>().material = GameObject.FindWithTag("GameManager").GetComponent<ScriptMenuGameManager>().MaterialOfPlatformBottom;
         //A Platform oldalainak ellenörzése és az ahhoz szükséges változók.
         Vector3[] VectorsOfSides = {Vector3.forward, Vector3.right, Vector3.back};
         for (int NumberOfSide = 0; NumberOfSide < VectorsOfSides.Length; NumberOfSide++)
@@ -49,11 +46,11 @@ public class ScriptPlatformAI : MonoBehaviour
             //A Platform legenerálása utáni helyre mozgatása.
             if (transform.position.y != 0 && !PlatfromGenerated)
             {
-                transform.position = Vector3.MoveTowards(transform.position, new Vector3(transform.position.x, 0, transform.position.z), (3.125f * (Vector3.Distance(transform.position, new Vector3(transform.position.x, 0, transform.position.z) / 2) * Time.deltaTime)));
+                transform.position = Vector3.MoveTowards(transform.position, new Vector3(transform.position.x, 0, transform.position.z), ((4.125f + Mathf.Abs(transform.position.y) * 5) * Time.unscaledDeltaTime));
             }
             //Az új Platform legenerálása/eltüntetése és az ahhoz szükséges számítások.
             float DistanceOfPlayer = Vector3.Distance(transform.position, PlayerAIObject.transform.position);
-            if (transform.position.y == 0 && DistanceOfPlayer < 10f && !PlatfromGenerated)
+            if (transform.position.y == 0 && DistanceOfPlayer < 5f && !PlatfromGenerated)
             {
                 //Ha a közelsége kevesebb mint 5f és még nem generált korábban Platformot akkor megteszi.
                 DirectionGeneratedPlatform = Random.Range(0, 3);

@@ -1,0 +1,88 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class ScriptGraphicsManager : MonoBehaviour
+{
+    public int[] TypeOfStyle;
+    public int NumberOfFPS;
+    public int NumberOfPostProcess;
+    private int NumberOfColor;
+    private float NumberOfColorTime;
+    public Material[] MaterialOfPlatform;
+    [SerializeField] private GameObject PostProcessManager;
+    [SerializeField] private GameObject CircleProgressBar;
+    [SerializeField] private GameObject ScoreIndicatorBar;
+    [SerializeField] private Color[] ColorsOfMaterial0 = {new Color32(10, 0, 204, 255), new Color32(187, 0, 204, 255), new Color32(204, 0, 0, 255), new Color32(204, 100, 2, 255), new Color32(204, 177, 0, 255), new Color32(22, 204, 2, 255), new Color32(0, 204, 190, 255)};
+    [SerializeField] private Color[] ColorsOfMaterial1 = {new Color32(9, 0, 179, 255), new Color32(164, 0, 179, 255), new Color32(179, 0, 0, 255), new Color32(179, 86, 1, 255), new Color32(179, 155, 0, 255), new Color32(20, 179, 1, 255), new Color32(0, 179, 168, 255)};
+    [SerializeField] private Color[] ColorsOfMaterial2 = {new Color32(9, 0, 179, 255), new Color32(164, 0, 179, 255), new Color32(179, 0, 0, 255), new Color32(179, 86, 1, 255), new Color32(179, 155, 0, 255), new Color32(20, 179, 1, 255), new Color32(0, 179, 168, 255)};
+    [SerializeField] private Color[] ColorsOfCamera = {new Color32(110, 107, 178, 255), new Color32(171, 0, 107, 178), new Color32(178, 107, 107, 255), new Color32(178, 140, 107, 255), new Color32(178, 167, 107, 255), new Color32(115, 178, 107, 255), new Color32(107, 178, 173, 255)};
+    public void Start()
+    {
+        QualitySettings.vSyncCount = 0;
+        SetUpGraphics();
+    }
+    public void Update()
+    {
+        Application.targetFrameRate = NumberOfFPS;
+        //A Materialok és egyébb elemek szineinek állandó változtatása.
+        if (TypeOfStyle[0] == 0)
+        {
+            MaterialOfPlatform[0].color = Color.Lerp(MaterialOfPlatform[0].color, ColorsOfMaterial0[NumberOfColor], 0.2f * Time.deltaTime);
+            MaterialOfPlatform[1].color = Color.Lerp(MaterialOfPlatform[1].color, ColorsOfMaterial1[NumberOfColor], 0.2f * Time.deltaTime);
+            MaterialOfPlatform[2].color = Color.Lerp(MaterialOfPlatform[2].color, ColorsOfMaterial2[NumberOfColor], 0.2f * Time.deltaTime);
+            Camera.main.backgroundColor = Color.Lerp(Camera.main.backgroundColor, ColorsOfCamera[NumberOfColor], 0.2f * Time.deltaTime);
+            CircleProgressBar.GetComponent<Image>().color = Color.Lerp(MaterialOfPlatform[0].color, ColorsOfMaterial1[NumberOfColor], 0.2f * Time.deltaTime);
+            CircleProgressBar.transform.GetChild(0).transform.GetChild(0).GetComponent<TextMeshProUGUI>().color = Color.Lerp(MaterialOfPlatform[0].color, ColorsOfMaterial1[NumberOfColor], 0.2f * Time.deltaTime);
+            CircleProgressBar.transform.GetChild(0).transform.GetChild(1).GetComponent<TextMeshProUGUI>().color = Color.Lerp(MaterialOfPlatform[0].color, ColorsOfMaterial1[NumberOfColor], 0.2f * Time.deltaTime);
+            ScoreIndicatorBar.GetComponent<Image>().color = Color.Lerp(MaterialOfPlatform[0].color, ColorsOfMaterial0[NumberOfColor], 0.2f * Time.deltaTime);
+            //A Materialokon Lerp-pel megjelenített színek váltásáért felelős logika.
+            NumberOfColorTime = Mathf.Lerp(NumberOfColorTime, 1f, 0.2f * Time.deltaTime);
+            if (NumberOfColorTime > 0.9f)
+            {
+                NumberOfColor++;
+                NumberOfColor = (NumberOfColor >= 6) ? 0 : NumberOfColor;
+                NumberOfColorTime = 0;
+            }
+        }
+    }
+    public void SetUpGraphics()
+    {
+        if (TypeOfStyle[0] == 1)
+        {
+            //Színek beállítása.
+            MaterialOfPlatform[0].color = new Color32(255, 111, 145, 255);
+            MaterialOfPlatform[1].color = new Color32(204, 89, 118, 255);
+            MaterialOfPlatform[2].color = new Color32(214, 93, 109, 255);
+            Camera.main.backgroundColor = new Color32(255, 167, 120, 255);
+            CircleProgressBar.GetComponent<Image>().color = MaterialOfPlatform[2].color;
+            CircleProgressBar.transform.GetChild(0).transform.GetChild(0).GetComponent<TextMeshProUGUI>().color = MaterialOfPlatform[2].color;
+            CircleProgressBar.transform.GetChild(0).transform.GetChild(1).GetComponent<TextMeshProUGUI>().color = MaterialOfPlatform[1].color;
+            ScoreIndicatorBar.GetComponent<Image>().color = MaterialOfPlatform[0].color;
+        }
+        else
+        {
+            MaterialOfPlatform[0].color = ColorsOfMaterial0[5];
+            MaterialOfPlatform[1].color = ColorsOfMaterial1[5];
+            MaterialOfPlatform[2].color = ColorsOfMaterial1[5];
+            Camera.main.backgroundColor = ColorsOfCamera[5];
+        }
+        //A PostProcessManager aktíálása és deaktíválása.
+        if (TypeOfStyle[1] == 0)
+        {
+            if (PostProcessManager.activeInHierarchy == false)
+            {
+                PostProcessManager.SetActive(true);
+            }
+        }
+        else
+        {
+            if (PostProcessManager.activeInHierarchy == true)
+            {
+                PostProcessManager.SetActive(false);
+            }
+        }
+    }
+}

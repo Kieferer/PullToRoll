@@ -1,0 +1,121 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using TMPro;
+using System.IO;
+
+public class ScriptSettings : MonoBehaviour
+{
+    private int NumberOfLevel;
+    private int NumberOfScore;
+    private int IntOfBestScore;
+    private bool SettingsBoolean;
+    [SerializeField] private int NumberOfStyle;
+    [SerializeField] private int NumberOfFPS;
+    [SerializeField] private int NumberOfPostProcess;
+    [SerializeField] private TextMeshProUGUI TextOfStyle;
+    [SerializeField] private TextMeshProUGUI TextOfFPS;
+    [SerializeField] private TextMeshProUGUI TextOfPostProcess;
+    public void Start()
+    {
+        LoadScore();
+    }
+    public void Update()
+    {
+        if (SettingsBoolean == true)
+        {
+            GetComponent<CanvasGroup>().interactable = true;
+            GetComponent<CanvasGroup>().blocksRaycasts = true;
+            TextOfFPS.text = (NumberOfFPS.ToString() + " FPS");
+            TextOfStyle.text = (NumberOfStyle == 1 ? "static" : "rainbow");
+            TextOfPostProcess.text = (NumberOfPostProcess == 1 ? "off" : "on");
+            if (GetComponent<CanvasGroup>().alpha != 1)
+            {
+                GetComponent<CanvasGroup>().alpha = Mathf.MoveTowards(GetComponent<CanvasGroup>().alpha, 1f, 4.125f * Time.unscaledDeltaTime);
+            }
+        }
+        else
+        {
+            GetComponent<CanvasGroup>().interactable = false;
+            GetComponent<CanvasGroup>().blocksRaycasts = false;
+            if (GetComponent<CanvasGroup>().alpha != 0)
+            {
+                GetComponent<CanvasGroup>().alpha = Mathf.MoveTowards(GetComponent<CanvasGroup>().alpha, 0f, 4.125f * Time.unscaledDeltaTime);
+            }
+        }
+    }
+    public void ChangeStyle()
+    {
+        switch (NumberOfStyle)
+        {
+            case 0:
+                NumberOfStyle = 1;
+            break;
+            case 1:
+                NumberOfStyle = 0;
+            break;
+        }
+    }
+    public void ChangeFPS()
+    {
+        switch (NumberOfFPS)
+        {
+            case 60:
+                NumberOfFPS = 30;
+            break;
+            case 30:
+                NumberOfFPS = 60;
+            break;
+        }
+    }
+    public void ChangePostProcess()
+    {
+        switch (NumberOfPostProcess)
+        {
+            case 0:
+                NumberOfPostProcess = 1;
+            break;
+            case 1:
+                NumberOfPostProcess = 0;
+            break;
+        }
+    }
+    public void SettingsPanelSwitch()
+    {
+        switch (SettingsBoolean)
+        {
+            case false:
+                SettingsBoolean = true;
+            break;
+            case true:
+                SaveScore();
+                SettingsBoolean = false;
+            break;
+        }
+    }
+    public void LoadScore()
+    {
+        if (!File.Exists(Application.persistentDataPath + "/kiefer.kieferer"))
+        {
+            StreamWriter ApplicationWriter = new StreamWriter(Application.persistentDataPath + "/kiefer.kieferer");
+            ApplicationWriter.WriteLine(NumberOfLevel.ToString() + "\n" + NumberOfScore.ToString() + "\n" + IntOfBestScore.ToString() + "\n" + "0" + "\n" + "60" + "\n" + "0");
+            ApplicationWriter.Close();
+        }
+        else
+        {
+            string[] LinesOfMap = System.IO.File.ReadAllLines(Application.persistentDataPath + "/kiefer.kieferer");
+            NumberOfLevel = int.Parse(LinesOfMap[0]);
+            NumberOfScore = int.Parse(LinesOfMap[1]);
+            IntOfBestScore = int.Parse(LinesOfMap[2]);
+            NumberOfStyle = int.Parse(LinesOfMap[3]);
+            NumberOfFPS = int.Parse(LinesOfMap[4]);
+            NumberOfPostProcess = int.Parse(LinesOfMap[5]);
+        }
+    }
+    public void SaveScore()
+    {
+        StreamWriter ApplicationWriter = new StreamWriter(Application.persistentDataPath + "/kiefer.kieferer");
+        ApplicationWriter.WriteLine(NumberOfLevel.ToString() + "\n" + NumberOfScore.ToString() + "\n" + IntOfBestScore.ToString() + "\n" + NumberOfStyle.ToString() + "\n" + NumberOfFPS.ToString() + "\n" + NumberOfPostProcess.ToString());
+        ApplicationWriter.Close();
+    }
+}

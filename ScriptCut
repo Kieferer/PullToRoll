@@ -5,15 +5,29 @@ using UnityEngine;
 public class ScriptCut : MonoBehaviour
 {
     public bool SceneUnderProcess;
+    [SerializeField] private GameObject GameManager;
     public void Update()
     {
         if (!SceneUnderProcess)
         {
-            transform.localScale = Vector3.MoveTowards(transform.localScale, Vector3.zero, 5 * Time.deltaTime);
+            if (transform.localScale != Vector3.zero)
+            {
+                transform.localScale = Vector3.MoveTowards(transform.localScale, Vector3.zero, 5 * Time.deltaTime);
+            }
         }
         else
         {
-            transform.localScale = Vector3.MoveTowards(transform.localScale, new Vector3(3, 3, 3), 5 * Time.deltaTime);
+            if (transform.localScale != new Vector3(3, 3, 3))
+            {
+                transform.localScale = Vector3.MoveTowards(transform.localScale, new Vector3(3, 3, 3), 5 * Time.deltaTime);
+            }
+            else
+            {
+                if (GameManager.GetComponent<ScriptMenuGameManager>().AppClosing == true)
+                {
+                    Application.Quit();
+                }
+            }
         }
     }
 }

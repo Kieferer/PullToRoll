@@ -5,10 +5,10 @@ using UnityEngine;
 public class ScriptPlayer : MonoBehaviour
 {
     public bool PlayerAlive;
-    public bool PlayerPlate;
     private bool StillMoving;
-    public GameObject GameManager;
-    public GameObject PlayerObjectBroken;
+    [SerializeField] private Material[] MaterialOfPlayer;
+    [SerializeField] private GameObject GameManager;
+    [SerializeField] private GameObject PlayerObjectBroken;
     private Vector2 PositionOfFirstTouch;
     private Vector2 PositionOfLastTouch;
     private Vector3[] DirectionsOfRoll = {Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero};
@@ -78,13 +78,17 @@ public class ScriptPlayer : MonoBehaviour
     public void InspectorRay()
     {
         //A PlayerObject megállapítja, hogyha Platformra érkezett, akkor milyenre.
-        if (!Physics.Raycast(transform.position, Vector3.down, out RaycastHit Platform, 4f))
-        {
-            DieAndRebornOfPlayer();
-        }
-        else
+        if (!Physics.Raycast(transform.position, Vector3.down, 4f))
         {
             if (PlayerAlive)
+            {
+                DieAndRebornOfPlayer();
+            }
+        }
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit Platform, 3f))
+        {
+            Debug.Log("PlayerAlive: " + PlayerAlive + " Tag: " + (Platform.transform.tag = "Platform") + " Reached: " + (Platform.transform.GetComponent<ScriptPlatform>().PlayerReached = false));
+            if (PlayerAlive == true)
             {
                 //Ebben az esetben egyenesen a Platformal érintkezik a PlayerObject, így tud egyből arra hivatkozni.
                 if (Platform.transform.tag == "Platform")
@@ -92,68 +96,25 @@ public class ScriptPlayer : MonoBehaviour
                     //A PlayerObject igény szerint változtatja a Material-t.
                     if (Platform.transform.GetComponent<ScriptPlatform>().NextPlatformSpike == true && Platform.transform.GetComponent<ScriptPlatform>().NumberSidesOfPlatform == 0)
                     {
-                        GetComponent<MeshRenderer>().material = GameManager.GetComponent<ScriptGameManager>().MaterialOfPlayer[1];
+                        GetComponent<MeshRenderer>().material = MaterialOfPlayer[1];
                     }
                     if (Platform.transform.GetComponent<ScriptPlatform>().NextPlatformSpike == false || Platform.transform.GetComponent<ScriptPlatform>().NumberSidesOfPlatform != 0)
                     {
-                        GetComponent<MeshRenderer>().material = GameManager.GetComponent<ScriptGameManager>().MaterialOfPlayer[0];
+                        GetComponent<MeshRenderer>().material = MaterialOfPlayer[0];
                     }
-                    //A PlayerObject pontokat ad a játék teéjesítményhez.
-                    if (Platform.transform.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromSpike == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
+                    //A PlayerObject hozzáadja a jutalmat, a játékban elért pontokhoz.
+                    if (Platform.transform.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromSpike == false)
                     {
                         GameManager.GetComponent<ScriptGameManager>().AddScore(1);
                         Platform.transform.GetComponent<ScriptPlatform>().PlayerReached = true;
                     }
-                    if (Platform.transform.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromSpike == true && Platform.transform.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
+                    if (Platform.transform.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromSpike == true)
                     {
                         GameManager.GetComponent<ScriptGameManager>().AddScore(2);
                         Platform.transform.GetComponent<ScriptPlatform>().PlayerReached = true;
                     }
-                    if (Platform.transform.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromSpike == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
-                    {
-                        GameManager.GetComponent<ScriptGameManager>().AddScore(3);
-                        Platform.transform.GetComponent<ScriptPlatform>().PlayerReached = true;
-                    }
-                    if (Platform.transform.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.GetComponent<ScriptPlatform>().PlatfromSpike == true && Platform.transform.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
-                    {
-                        GameManager.GetComponent<ScriptGameManager>().AddScore(4);
-                        Platform.transform.GetComponent<ScriptPlatform>().PlayerReached = true;
-                    }
                 }
-                //Ebben az esetben nem a Platformal érintkezik a PlayerObject, hanem egy ahhoz tartozó elemmel.
-                if (Platform.transform.tag == "PlatformSpike" || Platform.transform.tag == "PlatformPlate")
-                {
-                    //A PlayerObject igény szerint változtatja a Material-t.
-                    if (Platform.transform.parent.GetComponent<ScriptPlatform>().NextPlatformSpike == true && Platform.transform.parent.GetComponent<ScriptPlatform>().NumberSidesOfPlatform == 0)
-                    {
-                        GetComponent<MeshRenderer>().material = GameManager.GetComponent<ScriptGameManager>().MaterialOfPlayer[1];
-                    }
-                    else
-                    {
-                        GetComponent<MeshRenderer>().material = GameManager.GetComponent<ScriptGameManager>().MaterialOfPlayer[0];
-                    }
-                    //A PlayerObject pontokat ad a játék teéjesítményhez.
-                    if (Platform.transform.parent.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.parent.GetComponent<ScriptPlatform>().PlatfromSpike == false && Platform.transform.parent.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
-                    {
-                        GameManager.GetComponent<ScriptGameManager>().AddScore(1);
-                        Platform.transform.parent.GetComponent<ScriptPlatform>().PlayerReached = true;
-                    }
-                    if (Platform.transform.parent.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.parent.GetComponent<ScriptPlatform>().PlatfromSpike == true && Platform.transform.parent.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
-                    {
-                        GameManager.GetComponent<ScriptGameManager>().AddScore(2);
-                        Platform.transform.parent.GetComponent<ScriptPlatform>().PlayerReached = true;
-                    }
-                    if (Platform.transform.parent.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.parent.GetComponent<ScriptPlatform>().PlatfromSpike == false && Platform.transform.parent.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
-                    {
-                        GameManager.GetComponent<ScriptGameManager>().AddScore(3);
-                        Platform.transform.parent.GetComponent<ScriptPlatform>().PlayerReached = true;
-                    }
-                    if (Platform.transform.parent.GetComponent<ScriptPlatform>().PlayerReached == false && Platform.transform.parent.GetComponent<ScriptPlatform>().PlatfromSpike == true && Platform.transform.parent.GetComponent<ScriptPlatform>().PlatfromGenerated == true)
-                    {
-                        GameManager.GetComponent<ScriptGameManager>().AddScore(4);
-                        Platform.transform.parent.GetComponent<ScriptPlatform>().PlayerReached = true;
-                    }
-                }
+                StillMoving = false;
             }
         }
     }
@@ -163,7 +124,11 @@ public class ScriptPlayer : MonoBehaviour
         {
             case true:
                 //Ebben az esetben a PlayerObject elpusztul.
+                StillMoving = false;
                 PlayerAlive = false;
+                GameManager.GetComponent<ScriptGameManager>().NumberOfReborn++;
+                GameManager.GetComponent<ScriptGameManager>().PlayerRespawning = true;
+                StartCoroutine(GameManager.GetComponent<ScriptGameManager>().SceneBuildForPlayer());
                 GetComponent<BoxCollider>().enabled = false;
                 GetComponent<MeshRenderer>().enabled = false;
                 GameObject PlayerObjectDead = Instantiate(PlayerObjectBroken, transform.position, Quaternion.identity);
@@ -173,11 +138,11 @@ public class ScriptPlayer : MonoBehaviour
             case false:
                 //Ebben az esetben a PlayerObject újászület.
                 transform.position = new Vector3(0, 0.62f, 0);
+                //transform.rotation = Quaternion.identity;
                 GetComponent<BoxCollider>().enabled = true;
                 GetComponent<MeshRenderer>().enabled = true;
-                GetComponent<MeshRenderer>().material = GameManager.GetComponent<ScriptGameManager>().MaterialOfPlayer[0];
+                GetComponent<MeshRenderer>().material = MaterialOfPlayer[0];
                 PlayerAlive = true;
-                InspectorRay();
             break;
         }
     }
@@ -189,12 +154,11 @@ public class ScriptPlayer : MonoBehaviour
         Vector3 AxisOfObject = Vector3.Cross(Vector3.up, DirectionForRoll).normalized;
         while (RotationOfObject < 90f)
         {
-            transform.RotateAround(CenterOfObject, AxisOfObject, 400.125f * Time.deltaTime);
-            RotationOfObject += (400.125f * Time.deltaTime);
+            transform.RotateAround(CenterOfObject, AxisOfObject, 400 * Time.unscaledDeltaTime);
+            RotationOfObject += (400 * Time.unscaledDeltaTime);
             yield return null;
         }
         transform.RotateAround(CenterOfObject, AxisOfObject, 90 - RotationOfObject);
-        StillMoving = false;
         InspectorRay();
     }
 }

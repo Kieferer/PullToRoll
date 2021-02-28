@@ -1,0 +1,16 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+public class ScriptAppQuit : MonoBehaviour, IPointerClickHandler
+{
+    [SerializeField] private GameObject GameManager;
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (GameManager.GetComponent<ScriptMenuGameManager>().AppClosing == false)
+        {
+            GameManager.GetComponent<ScriptMenuGameManager>().CloseApplication();
+        }
+    }
+}

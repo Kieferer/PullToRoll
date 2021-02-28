@@ -1,0 +1,40 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System;
+using GooglePlayGames;
+using GooglePlayGames.BasicApi;
+
+public class ScriptPlayServices : MonoBehaviour
+{
+    public void Start()
+    {
+        DontDestroyOnLoad(this);
+        try
+        {
+            PlayGamesClientConfiguration configuration = new PlayGamesClientConfiguration.Builder().Build();
+            PlayGamesPlatform.InitializeInstance(configuration);
+            PlayGamesPlatform.DebugLogEnabled = true;
+            PlayGamesPlatform.Activate();
+            Social.localUser.Authenticate((bool success) => {});
+        }
+        catch (Exception Expection0)
+        {
+            Debug.Log(Expection0);
+        }
+    }
+    public void AddScoreToLeaderBoard(int NumberOfLevel)
+    {
+        if (Social.localUser.authenticated)
+        {
+            Social.ReportScore(NumberOfLevel, "CgkI-ZjHo84EEAIQAA", success => {});
+        }
+    }
+    public void ShowLeaderBoard()
+    {
+        if (Social.localUser.authenticated)
+        {
+            Social.ShowLeaderboardUI();
+        }
+    }
+}

@@ -4,20 +4,20 @@ using UnityEngine;
 
 public class ScriptPlatform : MonoBehaviour
 {
+    public bool PlatformOrigin;
     public bool PlayerReached;
-    public bool PlatfromGenerated;
+    private bool PlatfromGenerated;
     public bool PlatfromSpike;
-    public bool PlatformPlate;
     public bool NextPlatformSpike;
     public int NumberSidesOfPlatform;
-    private bool[] SidesOfPlatform = {false, false, false};
-    private float FloatOfSpikeY;
-    private GameObject PlayerObject;
+    private float DistanceOfPlayer;
+    private float SpikeOfPlatformY;
     private GameObject GameManager;
+    private GameObject PlayerObject;
     private GameObject PlatformParent;
     [SerializeField] private GameObject PlatformPrefab;
     [SerializeField] private GameObject SpikeOfThisPlatform;
-    [SerializeField] private GameObject PlateOfThisPlatform;
+    private bool[] SidesOfPlatform = {false, false, false};
     public void Awake()
     {
         if (!PlayerObject || !GameManager)
@@ -28,54 +28,17 @@ public class ScriptPlatform : MonoBehaviour
     }
     public void Start()
     {
-        //Platform tulajdonságainak beállítása.
-        GameManager.GetComponent<ScriptGameManager>().NumberOfGeneratedPlatforms++;
-        this.gameObject.name = ("[Platform][" + GameManager.GetComponent<ScriptGameManager>().NumberOfGeneratedPlatforms + "]"); 
-        if (SpikeOfThisPlatform != null && PlateOfThisPlatform != null)
+        if (!PlatformOrigin)
         {
-            SpikeOfThisPlatform.GetComponent<MeshRenderer>().material = GameObject.FindWithTag("GameManager").GetComponent<ScriptGameManager>().MaterialOfPlatform[2];
-            if (PlatfromSpike == false)
+            if (Random.Range(0, 100) > GameManager.GetComponent<ScriptGameManager>().ChanceToSpike)
             {
-                FloatOfSpikeY = -5f;
-                SpikeOfThisPlatform.transform.localPosition = new Vector3(SpikeOfThisPlatform.transform.localPosition.x, -5f, SpikeOfThisPlatform.transform.localPosition.z);
-                if (PlatformPlate == true)
-                {
-                    PlateOfThisPlatform.transform.localPosition = new Vector3(PlateOfThisPlatform.transform.localPosition.x, 0.6f, PlateOfThisPlatform.transform.localPosition.z);
-                }
+                NextPlatformSpike = true;
             }
             else
             {
-                FloatOfSpikeY = 0f;
-                SpikeOfThisPlatform.transform.localPosition = new Vector3(SpikeOfThisPlatform.transform.localPosition.x, 0f, SpikeOfThisPlatform.transform.localPosition.z);
-                PlateOfThisPlatform.transform.localPosition = new Vector3(PlateOfThisPlatform.transform.localPosition.x, -4f, PlateOfThisPlatform.transform.localPosition.z);
+                NextPlatformSpike = false;
             }
         }
-        //PlatformSpike generálása esély alapján a jelenlegi szinttől függően.
-        if (Random.Range(0, 100) > GameManager.GetComponent<ScriptGameManager>().ChanceToSpike[GameManager.GetComponent<ScriptGameManager>().NumberOfLevel])
-        {
-            NextPlatformSpike = true;
-        }
-        else
-        {
-            NextPlatformSpike = false;
-        }
-        //PlatformSpike generálása esély alapján a jelenlegi szinttől függően.
-        if (PlatfromSpike == false && transform.childCount > 2)
-        {
-            if (Random.Range(0, 100) > GameManager.GetComponent<ScriptGameManager>().ChanceToPlate[GameManager.GetComponent<ScriptGameManager>().NumberOfLevel])
-            {
-                transform.GetChild(2).transform.localPosition = new Vector3(0f, 0.6f, 0f);
-                PlatformPlate = true;
-            }
-            else
-            {
-                transform.GetChild(2).transform.localPosition = new Vector3(0f, -6f, 0f);
-                PlatformPlate = false;
-            }
-        }
-        //Platform Material-jainak beállítása.
-        GetComponent<MeshRenderer>().material = GameObject.FindWithTag("GameManager").GetComponent<ScriptGameManager>().MaterialOfPlatform[0];
-        transform.GetChild(0).GetComponent<MeshRenderer>().material = GameObject.FindWithTag("GameManager").GetComponent<ScriptGameManager>().MaterialOfPlatform[1];
         //A Platform oldalainak ellenörzése és az ahhoz szükséges változók.
         Vector3[] VectorsOfSides = {Vector3.forward, Vector3.right, Vector3.back};
         for (int NumberOfSide = 0; NumberOfSide < VectorsOfSides.Length; NumberOfSide++)
@@ -105,17 +68,55 @@ public class ScriptPlatform : MonoBehaviour
                     transform.position = Vector3.MoveTowards(transform.position, new Vector3(transform.position.x, 0, transform.position.z), ((4.125f + Mathf.Abs(transform.position.y) * 5) * Time.unscaledDeltaTime));
                 }
                 //Az új Platform legenerálása/eltüntetése és az ahhoz szükséges számítások.
-                float DistanceOfPlayer = Vector3.Distance(transform.position, PlayerObject.transform.position);
-                if (transform.position.y == 0 && DistanceOfPlayer < 10f && !PlatfromGenerated)
+                DistanceOfPlayer = Vector3.Distance(transform.position, PlayerObject.transform.position);
+                if (transform.position.y == 0)
                 {
-                    //Ha a közelsége kevesebb mint 2.8f és még nem generált korábban Platformot akkor megteszi.
-                    NumberSidesOfPlatform = Random.Range(0, 3);
-                    if (this.SidesOfPlatform[NumberSidesOfPlatform] == false)
+                    if (DistanceOfPlayer < 5f && !PlatfromGenerated)
                     {
-                        GeneratePlatform(NumberSidesOfPlatform);
-                        PlatfromGenerated = true;
+                        //Ha a közelsége kevesebb mint 5f és még nem generált korábban Platformot akkor megteszi.
+                        NumberSidesOfPlatform = Random.Range(0, 3);
+                        if (this.SidesOfPlatform[NumberSidesOfPlatform] == false)
+                        {
+                            GeneratePlatform(NumberSidesOfPlatform);
+                            PlatfromGenerated = true;
+                        }
+                    }
+                    if (SpikeOfThisPlatform != null)
+                    {
+                        if (PlatfromSpike == true)
+                        {
+                            if (DistanceOfPlayer > 1f || SpikeOfThisPlatform.transform.localPosition.y > -3.50f)
+                            {
+                                //A Spike mozgásának irányá-ért felelős részleg.
+                                if (SpikeOfThisPlatform.transform.localPosition.y <= -5.8f)
+                                {
+                                    SpikeOfPlatformY = 0f;
+                                }
+                                if (SpikeOfThisPlatform.transform.localPosition.y >= -0.2f)
+                                {
+                                    SpikeOfPlatformY = -6f;
+                                }
+                            }
+                            else
+                            {
+                                if (SpikeOfThisPlatform.transform.localPosition != new Vector3(SpikeOfThisPlatform.transform.localPosition.x, -6f, SpikeOfThisPlatform.transform.localPosition.z))
+                                {
+                                    SpikeOfThisPlatform.transform.localPosition = new Vector3(SpikeOfThisPlatform.transform.localPosition.x, -6f, SpikeOfThisPlatform.transform.localPosition.z);
+                                }
+                            }
+                            //A Spike mozgatása.
+                            SpikeOfThisPlatform.transform.localPosition = Vector3.MoveTowards(SpikeOfThisPlatform.transform.localPosition, new Vector3(SpikeOfThisPlatform.transform.localPosition.x, SpikeOfPlatformY, SpikeOfThisPlatform.transform.localPosition.z), 2.125f * Time.unscaledDeltaTime);
+                        }
+                        else
+                        {
+                            if (SpikeOfThisPlatform.transform.localPosition.y != -6f)
+                            {
+                                SpikeOfThisPlatform.transform.localPosition = new Vector3(SpikeOfThisPlatform.transform.localPosition.x, -6f, SpikeOfThisPlatform.transform.localPosition.z);
+                            }
+                        }
                     }
                 }
+                //Ennek a Platformnak az eltüntetésé-ért felelős részleg.
                 if ((DistanceOfPlayer > 3 && PlatfromGenerated && PlayerReached && !PlatformParent) || !PlayerObject.GetComponent<ScriptPlayer>().PlayerAlive)
                 {
                     if (transform.position.y != -20)
@@ -126,27 +127,6 @@ public class ScriptPlatform : MonoBehaviour
                     {
                         Destroy(this.gameObject);
                     }        
-                }
-                //A PlatformSpike vezérlésért felelős logika.
-                if (PlatfromSpike == true && transform.position.y == 0)
-                {
-                    if (transform.position == new Vector3(PlayerObject.transform.position.x, transform.position.y, PlayerObject.transform.position.z))
-                    {
-                        SpikeOfThisPlatform.transform.localPosition = new Vector3(SpikeOfThisPlatform.transform.localPosition.x, -5f, SpikeOfThisPlatform.transform.localPosition.z);
-                        FloatOfSpikeY = -5f;
-                    }
-                    else
-                    {
-                        if (SpikeOfThisPlatform.transform.localPosition.y > -1f)
-                        {
-                            FloatOfSpikeY = -5f;
-                        }
-                        if (SpikeOfThisPlatform.transform.localPosition.y < -4.7f)
-                        {
-                            FloatOfSpikeY = 0f;
-                        }
-                        SpikeOfThisPlatform.transform.localPosition = Vector3.MoveTowards(SpikeOfThisPlatform.transform.localPosition, new Vector3(SpikeOfThisPlatform.transform.localPosition.x, FloatOfSpikeY, SpikeOfThisPlatform.transform.localPosition.z), ((2.125f + Mathf.Abs(transform.position.y) * 5) * Time.unscaledDeltaTime));
-                    }
                 }
             }
         }
@@ -160,22 +140,25 @@ public class ScriptPlatform : MonoBehaviour
             case 0:
                 NextTargetedPosition = (new Vector3(transform.position.x, -20, transform.position.z) + Vector3.forward);
                 GameObject Platform0 = Instantiate(PlatformPrefab, NextTargetedPosition, Quaternion.identity);
+                Platform0.GetComponent<ScriptPlatform>().PlatfromSpike = this.gameObject.GetComponent<ScriptPlatform>().NextPlatformSpike;
                 Platform0.GetComponent<ScriptPlatform>().PlatformParent = this.gameObject;
-                Platform0.GetComponent<ScriptPlatform>().PlatfromSpike = NextPlatformSpike;
+                Platform0.GetComponent<ScriptPlatform>().enabled = true;
             break;
             //Ebben az esetben a Platformot a jelenlegitől előre fogja generálni.
             case 1:
                 NextTargetedPosition = (new Vector3(transform.position.x, -20, transform.position.z) + Vector3.right);
                 GameObject Platform1 = Instantiate(PlatformPrefab, NextTargetedPosition, Quaternion.identity);
+                Platform1.GetComponent<ScriptPlatform>().PlatfromSpike = this.gameObject.GetComponent<ScriptPlatform>().NextPlatformSpike;
                 Platform1.GetComponent<ScriptPlatform>().PlatformParent = this.gameObject;
-                Platform1.GetComponent<ScriptPlatform>().PlatfromSpike = NextPlatformSpike;
+                Platform1.GetComponent<ScriptPlatform>().enabled = true;
             break;
             //Ebben az esetben a Platformot a jelenlegitől balra fogja generálni.
             case 2:
                 NextTargetedPosition = (new Vector3(transform.position.x, -20, transform.position.z) + Vector3.back);
                 GameObject Platform2 = Instantiate(PlatformPrefab, NextTargetedPosition, Quaternion.identity);
+                Platform2.GetComponent<ScriptPlatform>().PlatfromSpike = this.gameObject.GetComponent<ScriptPlatform>().NextPlatformSpike;
                 Platform2.GetComponent<ScriptPlatform>().PlatformParent = this.gameObject;
-                Platform2.GetComponent<ScriptPlatform>().PlatfromSpike = NextPlatformSpike;
+                Platform2.GetComponent<ScriptPlatform>().enabled = true;
             break;
         }
     }

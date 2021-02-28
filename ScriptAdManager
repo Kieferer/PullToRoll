@@ -1,0 +1,60 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.Advertisements;
+
+public class ScriptAdManager : MonoBehaviour, IUnityAdsListener
+{
+    public bool GameInTestMode;
+    [SerializeField] private GameObject GameManager;
+    private const string PullToRoll = "4027313";
+    private const string InterstitialVideoID = "Interstitial";
+    private const string RewardedVideoID = "rewardedVideo";
+    public void Start()
+    {
+        Advertisement.Initialize(PullToRoll, GameInTestMode);
+        //Advertisement.AddListener(this);
+    }
+    public void OnUnityAdsReady(string StringOfAdvertisements)
+    {
+        //Ebben az esetben játék megszakító reklám jelenik meg.
+        if (StringOfAdvertisements == InterstitialVideoID)
+        {
+            if (Advertisement.IsReady(InterstitialVideoID))
+            {
+                Advertisement.Show(InterstitialVideoID);
+            }
+        }
+        //Ebben az esetben díjazott reklám jelenik meg.
+        if (StringOfAdvertisements == RewardedVideoID)
+        {
+            if (Advertisement.IsReady(RewardedVideoID))
+            {
+                Advertisement.Show(RewardedVideoID);
+            }
+        }
+    }
+    public void OnUnityAdsDidStart(string StringOfAdvertisements)
+    {
+        //Ebben az esetben megkezdődik a reklám lejátszás.
+    }
+    public void OnUnityAdsDidFinish(string StringOfAdvertisements, ShowResult Result)
+    {
+        if (StringOfAdvertisements == RewardedVideoID)
+        {
+            if (Result == ShowResult.Finished)
+            {
+                GameManager.GetComponent<ScriptGameManager>().RewardForAd = true;
+            }
+            if (Result == ShowResult.Skipped)
+            {
+                //Ebben az esetben kinyomták a videót.
+            }
+        }
+    }
+    public void OnUnityAdsDidError(string message)
+    {
+        Debug.Log(message);
+    }
+}

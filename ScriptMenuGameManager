@@ -4,8 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 public class ScriptMenuGameManager : MonoBehaviour
 {
-    private float NumberOfColorTime;
+    public bool AppClosing;
     private int NumberOfColor;
+    private float NumberOfColorTime;
     public Material MaterialOfPlatformTop;
     public Material MaterialOfPlatformBottom;
     [SerializeField] private GameObject PlatformOrigin;
@@ -15,9 +16,13 @@ public class ScriptMenuGameManager : MonoBehaviour
     [SerializeField] private Color[] ColorsOfCamera = {new Color32(110, 107, 178, 255), new Color32(171, 0, 107, 178), new Color32(178, 107, 107, 255), new Color32(178, 140, 107, 255), new Color32(178, 167, 107, 255), new Color32(115, 178, 107, 255), new Color32(107, 178, 173, 255)};
     public void Start()
     {
+        SceneCutManager.SetActive(true);
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
         //A változó színek beállítása.
         MaterialOfPlatformTop.color = ColorsOfMaterialMain[5];
         MaterialOfPlatformBottom.color = ColorsOfMaterialSubject[5];
+        Camera.main.backgroundColor = ColorsOfCamera[5];
         //A SinglePlayer játékmód pályájának létrehozása.
         PlatformOrigin.GetComponent<MeshRenderer>().material = MaterialOfPlatformTop;
         PlatformOrigin.transform.GetChild(0).GetComponent<MeshRenderer>().material = MaterialOfPlatformBottom;
@@ -26,11 +31,10 @@ public class ScriptMenuGameManager : MonoBehaviour
     }
     public void Update()
     {
-        Application.targetFrameRate = 60;
-        QualitySettings.vSyncCount = 0;
         //A Materialok és egyébb elemek szineinek állandó változtatása. 
         MaterialOfPlatformTop.color = Color.Lerp(MaterialOfPlatformTop.color, ColorsOfMaterialMain[NumberOfColor], 0.2f * Time.deltaTime);
         MaterialOfPlatformBottom.color = Color.Lerp(MaterialOfPlatformBottom.color, ColorsOfMaterialSubject[NumberOfColor], 0.2f * Time.deltaTime);
+        Camera.main.backgroundColor = Color.Lerp(Camera.main.backgroundColor, ColorsOfCamera[NumberOfColor], 0.2f * Time.deltaTime);
         //A Materialokon Lerp-pel megjelenített színek váltásáért felelős logika.
         NumberOfColorTime = Mathf.Lerp(NumberOfColorTime, 1f, 0.2f * Time.deltaTime);
         if (NumberOfColorTime > 0.9f)
@@ -40,7 +44,12 @@ public class ScriptMenuGameManager : MonoBehaviour
             NumberOfColorTime = 0;
         }
     }
-    public IEnumerator SceneCut(int NumberForWait)
+    public void CloseApplication()
+    {
+        AppClosing = true;
+        StartCoroutine(SceneCut(0.2f));
+    }
+    public IEnumerator SceneCut(float NumberForWait)
     {
         yield return new WaitForSeconds(NumberForWait);
         if (SceneCutManager.GetComponent<ScriptCut>().SceneUnderProcess)

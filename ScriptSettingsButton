@@ -1,0 +1,13 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+public class ScriptSettingsButton : MonoBehaviour, IPointerClickHandler
+{
+    [SerializeField] private GameObject SettingsPanel;
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        SettingsPanel.GetComponent<ScriptSettings>().SettingsPanelSwitch();
+    }
+}

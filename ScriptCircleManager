@@ -1,0 +1,37 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class ScriptCircleManager : MonoBehaviour
+{
+    [SerializeField] private GameObject GameManager;
+    [SerializeField] private TextMeshProUGUI TextOfCircleTime;
+    public void Update()
+    {
+        TextOfCircleTime.text = GameManager.GetComponent<ScriptGameManager>().NumberOfCircleTime.ToString();
+        GetComponent<Image>().fillAmount = Mathf.Lerp(GetComponent<Image>().fillAmount, GameManager.GetComponent<ScriptGameManager>().CircleFillAmount, 4.125f * Time.unscaledDeltaTime);
+        if (GameManager.GetComponent<ScriptGameManager>().PlayerRespawning == true)
+        {
+            if (GetComponent<CanvasGroup>().alpha != 1f)
+            {
+                GetComponent<CanvasGroup>().alpha = Mathf.MoveTowards(GetComponent<CanvasGroup>().alpha, 1f, 3.125f * Time.unscaledDeltaTime);
+            }
+        }
+        else
+        {
+            if (GetComponent<CanvasGroup>().alpha != 0f)
+            {
+                GetComponent<CanvasGroup>().alpha = Mathf.MoveTowards(GetComponent<CanvasGroup>().alpha, 0f, 3.125f * Time.unscaledDeltaTime);
+            }
+            else
+            {
+                TextOfCircleTime.text = "0";
+                GameManager.GetComponent<ScriptGameManager>().NumberOfCircleTime = 3;
+                GameManager.GetComponent<ScriptGameManager>().CircleFillAmount = 0;
+                GetComponent<Image>().fillAmount = 0;
+            }
+        }
+    }
+}

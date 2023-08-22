@@ -2,6 +2,8 @@
 **PullToRoll is a casual mobile game that I developed in 2021 and published in Google Play Store.** The base gameplay is about moving a cube on an endless map. The cube going to break if it collides with a spike or fall of the dynamically generating platform. Each step which not ended with the break of the cube is given one point to the player. The score and leaderboard were connected to Google Play Services and users could compare their scores to others and their high score.
 [Video of the gameplay](https://drive.google.com/file/d/1zIP9saGfbmA5STc8v0e34od9tDoG-bgV/view?usp=sharing)
 
+> The repository only contains the C# scripts of the game.
+
 ## Used technologies
 * C#
 * Unity
